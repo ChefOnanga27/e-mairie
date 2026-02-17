@@ -1,0 +1,44 @@
+# ── Étape de construction ──────────────────────────────────────────────────
+FROM node:20-alpine AS construction
+
+WORKDIR /app
+
+# Copier les fichiers de dépendances
+COPY package*.json ./
+
+# Installer toutes les dépendances
+RUN npm ci --only=production
+
+# ── Étape de production ────────────────────────────────────────────────────
+FROM node:20-alpine AS production
+
+# Créer un utilisateur non-root pour la sécurité
+RUN addgroup -g 1001 -S mairie && \
+    adduser -S mairie -u 1001
+
+WORKDIR /app
+
+# Copier les dépendances installées
+COPY --from=construction /app/node_modules ./node_modules
+
+# Copier le code source
+COPY --chown=mairie:mairie . .
+
+# Créer le dossier de logs
+RUN mkdir -p logs && chown mairie:mairie logs
+
+# Utiliser l'utilisateur non-root
+USER mairie
+
+# Variables d'environnement par défaut
+ENV NODE_ENV=production
+
+# Exposer aucun port ici (géré par docker-compose)
+EXPOSE 3000
+
+# Vérification de santé
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:$PORT/sante || exit 1
+
+# Commande par défaut (remplacée dans docker-compose)
+CMD ["node", "passerelle/serveur.js"]
