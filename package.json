@@ -2,6 +2,7 @@
   "name": "recouvrement-municipal",
   "version": "1.0.0",
   "description": "Plateforme numérique de recouvrement des recettes municipales",
+   "private": true,
   "type": "module",
   "scripts": {
     "dev": "nodemon --exec node --experimental-vm-modules passerelle/serveur.js",
