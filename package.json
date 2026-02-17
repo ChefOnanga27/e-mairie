@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon --exec node --experimental-vm-modules passerelle/serveur.js",
-    "demarrer": "node passerelle/serveur.js",
+    "start": "node passerelle/serveur.js",
     "services:contribuables": "nodemon services/contribuables/src/application.js",
     "services:recettes": "nodemon services/recettes/src/application.js",
     "services:paiements": "nodemon services/paiements/src/application.js",
