@@ -1,1 +1,36 @@
-{}
+{
+  "name": "agent-service",
+  "version": "1.0.0",
+  "description": "Service de gestion des agents",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest --forceExit",
+    "test:watch": "jest --watch"
+  },
+  "keywords": [
+    "microservice",
+    "agents",
+    "express",
+    "prisma"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@prisma/client": "^5.7.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "helmet": "^7.1.0",
+    "http-proxy-middleware": "^2.0.6",
+    "jsonwebtoken": "^9.0.3"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.2",
+    "prisma": "^5.7.0",
+    "supertest": "^6.3.3"
+  }
+}
