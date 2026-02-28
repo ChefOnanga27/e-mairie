@@ -1,0 +1,15 @@
+export default {
+  '/api/auth': process.env.AUTH_SERVICE_URL || 'http://localhost:3001',
+  '/api/provinces': process.env.PROVINCE_SERVICE_URL || 'http://localhost:3002',
+  '/api/villes': process.env.VILLE_SERVICE_URL || 'http://localhost:3003',
+  '/api/mairies': process.env.MAIRIE_SERVICE_URL || 'http://localhost:3004',
+  '/api/agents': process.env.AGENT_SERVICE_URL || 'http://localhost:3005',
+  '/api/contribuables': process.env.CONTRIBUABLE_SERVICE_URL || 'http://localhost:3006',
+  '/api/documents': process.env.DOCUMENT_SERVICE_URL || 'http://localhost:3007',
+  '/api/demandes': process.env.DEMANDE_SERVICE_URL || 'http://localhost:3008',
+  '/api/emettre': process.env.EMETTRE_SERVICE_URL || 'http://localhost:3009',
+  '/api/utilisateurs': process.env.UTILISATEUR_SERVICE_URL || 'http://localhost:3010',
+  '/api/reporting': process.env.REPORTING_SERVICE_URL || 'http://localhost:3011',
+  '/api/audit': process.env.AUDIT_SERVICE_URL || 'http://localhost:3012',
+  '/api/notifications': process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3013',
+};

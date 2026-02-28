@@ -1,1 +1,27 @@
-{}
+{
+  "name": "municipal-revenue-platform",
+  "version": "1.0.0",
+  "description": "Plateforme de gestion des recettes municipales - Architecture microservices",
+  "type": "module",
+  "scripts": {
+    "install:all": "bash scripts/install-all.sh",
+    "start:all": "bash scripts/start-all.sh",
+    "stop:all": "bash scripts/stop-all.sh",
+    "restart:all": "bash scripts/restart-all.sh",
+    "health": "bash scripts/health-check.sh",
+    "migrate": "bash scripts/migrate-all.sh",
+    "seed": "bash scripts/seed-all.sh",
+    "clean": "bash scripts/clean.sh",
+    "backup": "bash scripts/backup-db.sh",
+    "db:generate": "npx prisma generate --schema=prisma/schema.prisma",
+    "db:migrate": "npx prisma migrate dev --schema=prisma/schema.prisma",
+    "db:studio": "npx prisma studio --schema=prisma/schema.prisma"
+  },
+  "devDependencies": {
+    "prisma": "^5.7.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.7.0",
+    "winston": "^3.19.0"
+  }
+}
