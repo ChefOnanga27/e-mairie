@@ -1,0 +1,328 @@
+
+     
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  
+}
+
+
+
+
+// ============================================
+// LOCALISATION GÉOGRAPHIQUE
+// ============================================
+
+model Province {
+  id        Int      @id @default(autoincrement())
+  nom       String   @unique
+  code      String   @unique
+  actif     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  villes    Ville[]
+
+  @@map("provinces")
+}
+
+model Ville {
+  id         Int      @id @default(autoincrement())
+  nom        String
+  code       String   @unique
+  provinceId Int
+  actif      Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  province   Province  @relation(fields: [provinceId], references: [id])
+  mairies    Mairie[]
+
+  @@map("villes")
+}
+
+// ============================================
+// MAIRIES & AGENTS
+// ============================================
+
+model Mairie {
+  id        Int      @id @default(autoincrement())
+  nom       String
+  adresse   String?
+  telephone String?
+  email     String?
+  villeId   Int
+  actif     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ville     Ville     @relation(fields: [villeId], references: [id])
+  agents    Agent[]
+  demandes  Demande[]
+  emissions Emettre[]
+
+  @@map("mairies")
+}
+
+model Agent {
+  id        Int      @id @default(autoincrement())
+  nom       String
+  prenom    String
+  email     String   @unique
+  telephone String?
+  matricule String   @unique
+  mairieId  Int
+  actif     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  mairie        Mairie         @relation(fields: [mairieId], references: [id])
+  utilisateur   Utilisateur?
+  demandes      Demande[]
+  emissions     Emettre[]
+  audits        AuditLog[]
+
+  @@map("agents")
+}
+
+// ============================================
+// CONTRIBUABLES
+// ============================================
+
+model Contribuable {
+  id          Int           @id @default(autoincrement())
+  nom         String
+  prenom      String?
+  email       String?       @unique
+  telephone   String?
+  adresse     String?
+  nif         String?       @unique  // Numéro d'Identification Fiscale
+  typePersonne TypePersonne @default(PHYSIQUE)
+  actif       Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  utilisateur  Utilisateur?
+  documents    Document[]
+  demandes     Demande[]
+  emissions    Emettre[]
+
+  @@map("contribuables")
+}
+
+enum TypePersonne {
+  PHYSIQUE
+  MORALE
+}
+
+// ============================================
+// DOCUMENTS
+// ============================================
+
+model TypeDocument {
+  id          Int       @id @default(autoincrement())
+  nom         String    @unique
+  code        String    @unique
+  description String?
+  prix        Decimal   @db.Decimal(10, 2)
+  actif       Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  documents   Document[]
+  demandes    Demande[]
+
+  @@map("types_documents")
+}
+
+model Document {
+  id             Int       @id @default(autoincrement())
+  reference      String    @unique
+  typeDocumentId Int
+  contribuableId Int
+  cheminFichier  String?
+  statut         StatutDocument @default(BROUILLON)
+  dateExpiration DateTime?
+  metadonnees    Json?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  typeDocument  TypeDocument  @relation(fields: [typeDocumentId], references: [id])
+  contribuable  Contribuable  @relation(fields: [contribuableId], references: [id])
+  demande       Demande?
+  emission      Emettre?
+
+  @@map("documents")
+}
+
+enum StatutDocument {
+  BROUILLON
+  EN_ATTENTE
+  VALIDE
+  REJETE
+  EXPIRE
+}
+
+// ============================================
+// DEMANDES CITOYENNES
+// ============================================
+
+model Demande {
+  id             Int           @id @default(autoincrement())
+  reference      String        @unique
+  contribuableId Int
+  mairieId       Int
+  agentId        Int?
+  typeDocumentId Int
+  documentId     Int?          @unique
+  statut         StatutDemande @default(EN_ATTENTE)
+  motifRejet     String?
+  commentaire    String?
+  datePaiement   DateTime?
+  montant        Decimal?      @db.Decimal(10, 2)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  contribuable  Contribuable  @relation(fields: [contribuableId], references: [id])
+  mairie        Mairie        @relation(fields: [mairieId], references: [id])
+  agent         Agent?        @relation(fields: [agentId], references: [id])
+  typeDocument  TypeDocument  @relation(fields: [typeDocumentId], references: [id])
+  document      Document?     @relation(fields: [documentId], references: [id])
+  notifications Notification[]
+
+  @@map("demandes")
+}
+
+enum StatutDemande {
+  EN_ATTENTE
+  EN_COURS
+  APPROUVEE
+  REJETEE
+  LIVREE
+}
+
+// ============================================
+// ÉMISSION DE DOCUMENTS
+// ============================================
+
+model Emettre {
+  id             Int      @id @default(autoincrement())
+  reference      String   @unique
+  documentId     Int      @unique
+  contribuableId Int
+  agentId        Int
+  mairieId       Int
+  montant        Decimal  @db.Decimal(10, 2)
+  modePaiement   ModePaiement @default(ESPECES)
+  dateEmission   DateTime @default(now())
+  receiptPath    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  document      Document     @relation(fields: [documentId], references: [id])
+  contribuable  Contribuable @relation(fields: [contribuableId], references: [id])
+  agent         Agent        @relation(fields: [agentId], references: [id])
+  mairie        Mairie       @relation(fields: [mairieId], references: [id])
+
+  @@map("emissions")
+}
+
+enum ModePaiement {
+  ESPECES
+  VIREMENT
+  MOBILE_MONEY
+  CHEQUE
+}
+
+// ============================================
+// UTILISATEURS & AUTHENTIFICATION
+// ============================================
+
+model Utilisateur {
+  id             Int      @id @default(autoincrement())
+  login          String   @unique
+  motDePasse     String
+  role           Role     @default(CONTRIBUABLE)
+  actif          Boolean  @default(true)
+  agentId        Int?     @unique
+  contribuableId Int?     @unique
+  refreshToken   String?
+  resetToken     String?
+  resetTokenExp  DateTime?
+  derniereConnexion DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  agent         Agent?        @relation(fields: [agentId], references: [id])
+  contribuable  Contribuable? @relation(fields: [contribuableId], references: [id])
+
+  @@map("utilisateurs")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN_MAIRIE
+  AGENT
+  CONTRIBUABLE
+}
+
+// ============================================
+// AUDIT & TRAÇABILITÉ
+// ============================================
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  action     String
+  entite     String
+  entiteId   Int?
+  agentId    Int?
+  userId     Int?
+  anciennesValeurs Json?
+  nouvellesValeurs Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  agent      Agent?   @relation(fields: [agentId], references: [id])
+
+  @@map("audit_logs")
+}
+
+// ============================================
+// NOTIFICATIONS
+// ============================================
+
+model Notification {
+  id         Int      @id @default(autoincrement())
+  type       TypeNotification
+  destinataire String
+  sujet      String?
+  contenu    String
+  statut     StatutNotification @default(EN_ATTENTE)
+  demandeId  Int?
+  tentatives Int      @default(0)
+  erreur     String?
+  envoyeAt   DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  demande    Demande? @relation(fields: [demandeId], references: [id])
+
+  @@map("notifications")
+}
+
+enum TypeNotification {
+  EMAIL
+  SMS
+}
+
+enum StatutNotification {
+  EN_ATTENTE
+  ENVOYE
+  ECHOUE
+}
